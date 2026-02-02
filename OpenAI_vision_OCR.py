@@ -8,7 +8,7 @@ import base64
 
 # Define directories
 PROCESSED_IMGS_DIR = "processed_imgs/"  # Directory for color images
-RESULTS_VISION_DIR = "results/OpenAI"  # Directory for Tesseract + OpenAI correction results
+RESULTS_VISION_DIR = "results/OpenAI"  # Directory for OpenAI Vision results
 
 def create_correction_prompt(ocr_text, document_type="historical document"):
     """
