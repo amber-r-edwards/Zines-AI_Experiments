@@ -74,10 +74,8 @@ def transcribe_with_vision_api(image_path, api_key):
         if not base64_image:
             return None, None
 
-        # Determine image format
-        image_format = Path(resized_image_path).suffix.lower()
-        if image_format not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-            print(f"Warning: {image_format} may not be supported by Vision API")
+        # Update media type after resize (always JPEG after conversion)
+        media_type = "image/jpeg"
 
         # Send request to Anthropic Vision API
         response = client.messages.create(
