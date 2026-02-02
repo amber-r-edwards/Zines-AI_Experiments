@@ -1,6 +1,5 @@
 import os
-import pytesseract
-from openai import OpenAI
+from anthropic import Anthropic
 from PIL import Image
 from pathlib import Path
 import base64
