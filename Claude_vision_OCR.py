@@ -1,5 +1,6 @@
 import os
-from anthropic import Anthropic
+import pytesseract
+from anthropic import Anthropic # type: ignore
 from PIL import Image
 from pathlib import Path
 import base64
