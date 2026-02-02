@@ -10,40 +10,6 @@ import base64
 PROCESSED_IMGS_DIR = "processed_imgs/"  # Directory for color images
 RESULTS_VISION_DIR = "results/OpenAI"  # Directory for OpenAI Vision results
 
-def create_correction_prompt(ocr_text, document_type="historical document"):
-    """
-    Create a prompt for OpenAI to correct OCR text.
-    
-    Args:
-        ocr_text (str): The raw OCR text
-        document_type (str): Type of document being processed
-        
-    Returns:
-        str: Formatted prompt for OpenAI
-    """
-    prompt = f"""Please correct the following OCR text from a {document_type}. 
-The text may contain OCR errors, missing punctuation, or formatting issues.
-
-IMPORTANT: You must process the ENTIRE document from beginning to end. Do not stop early or truncate the text.
-
-Please:
-1. Fix obvious OCR errors (like '0' instead of 'O', '1' instead of 'l', etc.)
-2. Add appropriate punctuation and capitalization
-3. Fix spacing and line breaks where needed
-4. Preserve the original meaning and historical context
-5. If a word is unclear, make your best guess based on context
-6. Do not add any additional text to the original text
-7. Do not delete any text from the original text unless you are sure it is an error and you are correcting a typo
-8. Process EVERY line of the original text - do not skip any content
-
-Original OCR text:
-{ocr_text}
-
-Corrected text:"""
-
-    return prompt
-
-
 def resize_and_convert_to_jpeg(image_path, max_width=1024, max_height=1024):
     """
     Resize the image to reduce its size while maintaining aspect ratio.
