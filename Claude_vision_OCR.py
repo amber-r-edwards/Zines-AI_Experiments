@@ -145,7 +145,7 @@ Transcribe now:"""
         # Calculate cost based on Claude pricing
         # Pricing as of the knowledge cutoff (check anthropic.com/pricing for current rates)
         # Update the model name below if you change the model above
-        model = "claude-sonnet-4-5-20250929"
+        model = "claude-haiku-4-5-20251001"
         pricing = {
             "claude-opus-4-5-20251101": {"input": 15.00 / 1_000_000, "output": 75.00 / 1_000_000},
             "claude-sonnet-4-5-20250929": {"input": 3.00 / 1_000_000, "output": 15.00 / 1_000_000},
