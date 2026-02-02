@@ -8,41 +8,7 @@ import base64
 
 # Define directories
 PROCESSED_IMGS_DIR = "processed_imgs/"  # Directory for color images
-RESULTS_VISION_DIR = "results/OpenAI"  # Directory for Tesseract + OpenAI correction results
-
-def create_correction_prompt(ocr_text, document_type="historical document"):
-    """
-    Create a prompt for OpenAI to correct OCR text.
-    
-    Args:
-        ocr_text (str): The raw OCR text
-        document_type (str): Type of document being processed
-        
-    Returns:
-        str: Formatted prompt for OpenAI
-    """
-    prompt = f"""Please correct the following OCR text from a {document_type}. 
-The text may contain OCR errors, missing punctuation, or formatting issues.
-
-IMPORTANT: You must process the ENTIRE document from beginning to end. Do not stop early or truncate the text.
-
-Please:
-1. Fix obvious OCR errors (like '0' instead of 'O', '1' instead of 'l', etc.)
-2. Add appropriate punctuation and capitalization
-3. Fix spacing and line breaks where needed
-4. Preserve the original meaning and historical context
-5. If a word is unclear, make your best guess based on context
-6. Do not add any additional text to the original text
-7. Do not delete any text from the original text unless you are sure it is an error and you are correcting a typo
-8. Process EVERY line of the original text - do not skip any content
-
-Original OCR text:
-{ocr_text}
-
-Corrected text:"""
-
-    return prompt
-
+RESULTS_VISION_DIR = "results/Claude"  # Directory for Claude vision results
 
 def resize_and_convert_to_jpeg(image_path, max_width=1024, max_height=1024):
     """
@@ -88,18 +54,18 @@ def resolve_image_path(images_dir, filename):
 
 def transcribe_with_vision_api(image_path, api_key):
     """
-    Transcribe text from an image using the OpenAI Vision API.
+    Transcribe text from an image using the Anthropic Vision API.
 
     Args:
         image_path (str): Path to the image file.
-        api_key (str): OpenAI API key.
+        api_key (str): Anthropic API key.
 
     Returns:
         tuple: (transcribed_text, usage_info)
     """
     try:
-        # Initialize OpenAI client
-        client = OpenAI(api_key=api_key)
+        # Initialize Anthropic client
+        client = Anthropic(api_key=api_key)
         
         # Resize and convert the image to JPEG
         resized_image_path = resize_and_convert_to_jpeg(image_path)
@@ -114,9 +80,9 @@ def transcribe_with_vision_api(image_path, api_key):
         if image_format not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
             print(f"Warning: {image_format} may not be supported by Vision API")
 
-        # Send request to OpenAI Vision API using the responses endpoint
-        response = client.chat.completions.create(
-            model="gpt-5.2",
+        # Send request to Anthropic Vision API
+        response = client.messages.create(
+            model="claude-sonnet-4-5-20250929",
             messages=[
                 {
                     "role": "system",
@@ -154,47 +120,55 @@ Do not add explanations before or after the transcription.
 Transcribe now:"""
                         },
                         {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/{image_format[1:]};base64,{base64_image}"
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": base64_image
                             }
                         }
                     ]
                 }
-            ],
-            max_completion_tokens=6000,
+            ]
         )
 
         # Extract usage information
         usage = response.usage
         usage_info = {
-            'prompt_tokens': usage.prompt_tokens,
-            'completion_tokens': usage.completion_tokens,
-            'total_tokens': usage.total_tokens
+            'prompt_tokens': usage.input_tokens,
+            'completion_tokens': usage.output_tokens,
+            'total_tokens': usage.input_tokens + usage.output_tokens
         }
 
         # Extract the transcribed text
-        transcribed_text = response.choices[0].message.content.strip()
+        transcribed_text = response.content[0].text.strip()
         
         # Print token usage and estimated cost
-        print(f"🔹 Token Usage: Prompt = {usage_info['prompt_tokens']}, Completion = {usage_info['completion_tokens']}, Total = {usage_info['total_tokens']}")
+        print(f"📊 Token Usage: Prompt = {usage_info['prompt_tokens']}, Completion = {usage_info['completion_tokens']}, Total = {usage_info['total_tokens']}")
         
-        # Calculate cost (adjust rates based on current OpenAI pricing)
-        # For gpt-4o: $5 per 1M input tokens, $15 per 1M output tokens (example rates)
-        cost_per_input_token = 5.00 / 1_000_000
-        cost_per_output_token = 15.00 / 1_000_000
-        estimated_cost = (usage_info['prompt_tokens'] * cost_per_input_token) + (usage_info['completion_tokens'] * cost_per_output_token)
+        # Calculate cost based on Claude pricing
+        # Pricing as of the knowledge cutoff (check anthropic.com/pricing for current rates)
+        # Update the model name below if you change the model above
+        model = "claude-sonnet-4-5-20250929"
+        pricing = {
+            "claude-opus-4-5-20251101": {"input": 15.00 / 1_000_000, "output": 75.00 / 1_000_000},
+            "claude-sonnet-4-5-20250929": {"input": 3.00 / 1_000_000, "output": 15.00 / 1_000_000},
+            "claude-haiku-4-5-20251001": {"input": 0.80 / 1_000_000, "output": 4.00 / 1_000_000}
+        }
+        
+        model_pricing = pricing.get(model, {"input": 3.00 / 1_000_000, "output": 15.00 / 1_000_000})
+        estimated_cost = (usage_info['prompt_tokens'] * model_pricing["input"]) + (usage_info['completion_tokens'] * model_pricing["output"])
         print(f"💰 Estimated Cost: ${estimated_cost:.6f}")
         
         return transcribed_text, usage_info
 
     except Exception as e:
-        print(f"❌ Error calling OpenAI Vision API: {e}")
+        print(f"❌ Error calling Anthropic Vision API: {e}")
         return None, None
     
 def main():
     """
-    Main function to process images OpenAI Vision.
+    Main function to process images Anthropic Vision.
     """
     # Ensure output directory exists
     os.makedirs(RESULTS_VISION_DIR, exist_ok=True)
