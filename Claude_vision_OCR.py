@@ -174,16 +174,16 @@ def main():
     os.makedirs(RESULTS_VISION_DIR, exist_ok=True)
 
     # Retrieve the API key from the environment variable
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("CLAUDE_API_KEY")
     if not api_key:
-        raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
+        raise ValueError("API key not found. Please set the CLAUDE_API_KEY environment variable.")
 
     # Initialize OpenAI client once for reuse
-    client = OpenAI(api_key=api_key)
+    client = Anthropic(api_key=api_key)
 
     # Tell user which processing method is being used
     print("\n=== OCR Processing ===")
-    print("OpenAI Vision API (for color images)")
+    print("Anthropic Vision API - Claude")
 
     # Get images from processed_imgs directory only
     processed_imgs_dir = "processed_imgs"
@@ -229,8 +229,8 @@ def main():
     
     print(f"\n✅ Selected {len(selected_images)} image(s) for processing from {processed_imgs_dir}")
 
-    # Process images with OpenAI Vision
-    print("\n=== Starting OpenAI Vision processing ===")
+    # Process images with Anthropic Vision
+    print("\n=== Starting Anthropic Vision processing ===")
     
     for image_file in selected_images:
         image_path = resolve_image_path(PROCESSED_IMGS_DIR, image_file)
