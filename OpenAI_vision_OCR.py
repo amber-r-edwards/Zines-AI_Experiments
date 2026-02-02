@@ -1,5 +1,4 @@
 import os
-import pytesseract
 from openai import OpenAI
 from PIL import Image
 from pathlib import Path
