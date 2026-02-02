@@ -4,7 +4,7 @@ This project investigates how AI models are, or are not, suited for gendered and
 
 ## Overview of Experiments
 **Methods**
-1. **OpenAI Vision**: Uses OpenAI's GPT-4.1, GPT-5-mini, and GPT-5.2 Vision API to directly transcribe text from color images
+1. **OpenAI Vision**: Uses OpenAI's GPT-4.1, GPT-5-mini, and GPT-5.2 Vision API to directly transcribe text from images
 2. **Claude**:
 3. **Gemini**:
 
@@ -26,7 +26,17 @@ This project investigates how AI models are, or are not, suited for gendered and
 
 - ***off our backs*** (Washington, D.C.) Volume 1, No. 1, page 13 (February 1970) - "survival: the diaphram" and "psychology of the diaphragm"
     - images within column layout, medical/reproductive health and sexual content
-    
+
 #### Project Structure
+
 ```
 Zines/AI_Experiments/
+├── processed_imgs/
+├── results/
+│   ├── Claude/
+│   ├── Gemini/
+│   └── OpenAI/
+├── OpenAI_images_OCR.py
+├── venv/
+└── README.md
+```
