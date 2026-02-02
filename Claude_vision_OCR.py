@@ -80,7 +80,7 @@ def transcribe_with_vision_api(image_path, api_key):
 
         # Send request to Anthropic Vision API
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-haiku-4-5-20251001",
             max_tokens=4096,
             system="You are a precise transcription assistant specializing in historical documents from the women's liberation movement. Your task is to transcribe text exactly as it appears, without interpretation, correction, or addition.",
             messages=[
