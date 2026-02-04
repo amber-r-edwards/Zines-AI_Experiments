@@ -9,6 +9,9 @@ openai
 # Anthropic Claude API
 anthropic>=0.18.0
 
+# Gemini API
+google.generativeai
+
 # Optional: For better image preprocessing
 opencv-python>=4.5.0
 numpy>=1.21.0
