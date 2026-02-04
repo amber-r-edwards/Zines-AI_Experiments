@@ -1,6 +1,6 @@
 import os
 import pytesseract
-from openai import OpenAI
+from google.generativeai as genai
 from PIL import Image
 from pathlib import Path
 import base64
@@ -8,7 +8,7 @@ import base64
 
 # Define directories
 PROCESSED_IMGS_DIR = "processed_imgs/"  # Directory for color images
-RESULTS_VISION_DIR = "results/OpenAI"  # Directory for OpenAI Vision results
+RESULTS_VISION_DIR = "results/Gemini"  # Directory for OpenAI Vision results
 
 def resize_and_convert_to_jpeg(image_path, max_width=1024, max_height=1024):
     """
@@ -54,18 +54,18 @@ def resolve_image_path(images_dir, filename):
 
 def transcribe_with_vision_api(image_path, api_key):
     """
-    Transcribe text from an image using the OpenAI Vision API.
+    Transcribe text from an image using the Gemini API.
 
     Args:
         image_path (str): Path to the image file.
-        api_key (str): OpenAI API key.
+        api_key (str): Gemini API key.
 
     Returns:
         tuple: (transcribed_text, usage_info)
     """
     try:
-        # Initialize OpenAI client
-        client = OpenAI(api_key=api_key)
+        # Initialize Gemini client
+        genai.configure(api_key=api_key)
         
         # Resize and convert the image to JPEG
         resized_image_path = resize_and_convert_to_jpeg(image_path)
@@ -80,20 +80,18 @@ def transcribe_with_vision_api(image_path, api_key):
         if image_format not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
             print(f"Warning: {image_format} may not be supported by Vision API")
 
-        # Send request to OpenAI Vision API using the responses endpoint
-        response = client.chat.completions.create(
-            model="gpt-5.2",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a precise transcription assistant specializing in historical documents from the women's liberation movement. Your task is to transcribe text exactly as it appears, without interpretation, correction, or addition."
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": """TRANSCRIPTION TASK - Read this carefully:
+        # Send request to Gemini API
+        # System instructions
+        system_instruction = "You are a precise transcription assistant specializing in historical documents. Transcribe text exactly as it appears."
+        
+        # Model Selection
+        model_name = "gemini-2.5-flash" 
+        model = genai.GenerativeModel(
+            model_name=model_name,
+            system_instruction=system_instruction
+        )
+
+        user_prompt = """TRANSCRIPTION TASK - Read this carefully:
 
 YOUR ONLY TASK: Copy the visible text exactly as it appears.
 
@@ -118,64 +116,59 @@ Do not write "Here is the transcription:" or similar phrases.
 Do not add explanations before or after the transcription.
 
 Transcribe now:"""
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/{image_format[1:]};base64,{base64_image}"
-                            }
-                        }
-                    ]
-                }
-            ],
-            max_completion_tokens=6000,
+
+        content = [
+            user_prompt,
+            {"mime_type": "image/jpeg", "data": base64_image}
+        ]
+
+        response = model.generate_content(
+            content,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=4096,
+                temperature=0.0
+            )
         )
 
-        # Extract usage information
-        usage = response.usage
+        usage = response.usage_metadata
         usage_info = {
-            'prompt_tokens': usage.prompt_tokens,
-            'completion_tokens': usage.completion_tokens,
-            'total_tokens': usage.total_tokens
+            'prompt_tokens': usage.prompt_token_count,
+            'completion_tokens': usage.candidates_token_count
         }
 
-        # Extract the transcribed text
-        transcribed_text = response.choices[0].message.content.strip()
+        # 2026 Pricing (Per 1M tokens)
+        pricing = {
+            "gemini-2.5-flash": {"input": 0.30 / 1_000_000, "output": 2.50 / 1_000_000},
+            "gemini-2.5-pro": {"input": 1.25 / 1_000_000, "output": 10.00 / 1_000_000},
+            "gemini-3.0-flash": {"input": 0.50 / 1_000_000, "output": 3.00 / 1_000_000}
+        }
         
-        # Print token usage and estimated cost
-        print(f"🔹 Token Usage: Prompt = {usage_info['prompt_tokens']}, Completion = {usage_info['completion_tokens']}, Total = {usage_info['total_tokens']}")
+        costs = pricing.get(model_name, pricing["gemini-2.5-flash"])
+        estimated_cost = (usage_info['prompt_tokens'] * costs["input"]) + (usage_info['completion_tokens'] * costs["output"])
         
-        # Calculate cost (adjust rates based on current OpenAI pricing)
-        # For gpt-4o: $5 per 1M input tokens, $15 per 1M output tokens (example rates)
-        cost_per_input_token = 5.00 / 1_000_000
-        cost_per_output_token = 15.00 / 1_000_000
-        estimated_cost = (usage_info['prompt_tokens'] * cost_per_input_token) + (usage_info['completion_tokens'] * cost_per_output_token)
-        print(f"💰 Estimated Cost: ${estimated_cost:.6f}")
+        print(f"📊 Tokens: {usage.total_token_count} | 💰 Cost: ${estimated_cost:.6f}")
         
-        return transcribed_text, usage_info
+        return response.text.strip(), usage_info
 
     except Exception as e:
-        print(f"❌ Error calling OpenAI Vision API: {e}")
+        print(f"❌ Error: {e}")
         return None, None
     
 def main():
     """
-    Main function to process images OpenAI Vision.
+    Main function to process images with Gemini Vision.
     """
     # Ensure output directory exists
     os.makedirs(RESULTS_VISION_DIR, exist_ok=True)
 
     # Retrieve the API key from the environment variable
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
-
-    # Initialize OpenAI client once for reuse
-    client = OpenAI(api_key=api_key)
+        raise ValueError("API key not found. Please set the GEMINI_API_KEY environment variable.")
 
     # Tell user which processing method is being used
     print("\n=== OCR Processing ===")
-    print("OpenAI Vision API (for color images)")
+    print("Google Gemini API - Vision")
 
     # Get images from processed_imgs directory only
     processed_imgs_dir = "processed_imgs"
@@ -221,8 +214,8 @@ def main():
     
     print(f"\n✅ Selected {len(selected_images)} image(s) for processing from {processed_imgs_dir}")
 
-    # Process images with OpenAI Vision
-    print("\n=== Starting OpenAI Vision processing ===")
+    # Process images with Gemini
+    print("\n=== Starting Gemini Vision processing ===")
     
     for image_file in selected_images:
         image_path = resolve_image_path(PROCESSED_IMGS_DIR, image_file)
@@ -240,7 +233,7 @@ def main():
                     f.write(transcribed_text)
                 print(f"✅ Saved Vision OCR text to: {output_file}")
             except Exception as e:
-                print(f"❌ Error processing {image_file} with Vision API: {e}")
+                print(f"❌ Error processing {image_file} with Gemini: {e}")
     
     print("\n=== Processing Complete ===")
 
