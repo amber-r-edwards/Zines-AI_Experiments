@@ -1,6 +1,6 @@
 import os
 import pytesseract
-import google.generativeai as genai
+import google.generativeai as genai # type: ignore
 from PIL import Image
 from pathlib import Path
 import base64
