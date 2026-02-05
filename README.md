@@ -1,6 +1,10 @@
 # Late 20th-Century Feminist Zines and AI Transcription Correction
 
-This project investigates how AI models are, or are not, suited for gendered and sexual material as published in women's liberation and feminist zines from the early-mid 1970s. AI provides potential solutions to the pitfalls of OCR in recognizing non-linear layouts and handwritten/decorative fonts. 
+This project investigates how AI models are, or are not, suited for gendered and sexual material as published in women's liberation and feminist zines from the early-mid 1970s. 
+
+AI provides potential solutions to the pitfalls of OCR in recognizing non-linear layouts and handwritten/decorative fonts. However, it also introduces hallucinations that can drastically change the context of the sources and render the ouput text files unfit for computational text analysis. 
+
+Comparing multiple models across different AI platforms - OpenAI, Anthropic's Claude, and Google's Gemini - this experiment included multiple types of content, including topics that could be categorized as explicit or "NSFW," to see what patterns of hallucinations emerge. 
 
 ## Overview of Experiments
 **Methods**
