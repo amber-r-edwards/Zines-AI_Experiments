@@ -125,7 +125,7 @@ Transcribe now:"""
         response = model.generate_content(
             content,
             generation_config=genai.types.GenerationConfig(
-                max_output_tokens=8192,
+                max_output_tokens=10000,
                 temperature=0.0
             )
         )
