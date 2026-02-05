@@ -6,7 +6,7 @@ This project investigates how AI models are, or are not, suited for gendered and
 **Methods**
 1. **OpenAI Vision**: Uses OpenAI's GPT-4.1, GPT-5-mini, and GPT-5.2 models for Vision to transcribe text from images
 2. **Claude**: Uses Anthropic's Claude-Sonnet 4.5, Claude-Opus 4.5, and Claude-Haiku 4.5 models for Vision to transcribe text from images
-3. **Gemini**:
+3. **Gemini**: Uses Google's Gemini 2.5-Flash, Gemini 2.5-Pro, and Gemini 3.0-Flash models for Vision to transcribe text from images.
 
 **Images**
 - ***Big Mama Rag*** (Denver, CO) Volume 1, No. 2, page 14 (February 1973) - "self-health cont." and poetry column
@@ -36,7 +36,9 @@ Zines/AI_Experiments/
 │   ├── Claude/
 │   ├── Gemini/
 │   └── OpenAI/
-├── OpenAI_images_OCR.py
+├── Claude_vision_OCR.py
+├── Gemini_vision_OCR.py
+├── OpenAI_vision_OCR.py
 ├── venv/
 └── README.md
 ```
