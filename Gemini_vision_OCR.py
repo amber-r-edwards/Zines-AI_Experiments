@@ -85,7 +85,7 @@ def transcribe_with_vision_api(image_path, api_key):
         system_instruction = "You are a precise transcription assistant specializing in historical documents. Transcribe text exactly as it appears."
         
         # Model Selection
-        model_name = "gemini-2.5-pro" 
+        model_name = "gemini-3-flash-preview" 
         model = genai.GenerativeModel(
             model_name=model_name,
             system_instruction=system_instruction
@@ -143,7 +143,7 @@ Transcribe now:"""
             "gemini-3.0-flash": {"input": 0.50 / 1_000_000, "output": 3.00 / 1_000_000}
         }
         
-        costs = pricing.get(model_name, pricing["gemini-2.5-pro"])
+        costs = pricing.get(model_name, pricing["gemini-3.0-flash"])
         estimated_cost = (usage_info['prompt_tokens'] * costs["input"]) + (usage_info['completion_tokens'] * costs["output"])
         
         print(f"📊 Tokens: {usage.total_token_count} | 💰 Cost: ${estimated_cost:.6f}")
